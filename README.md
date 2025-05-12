@@ -61,44 +61,31 @@ sudo iperf3 -c 10.45.0.2 -i 1 -t 5000 -u -b 10M
 To visualize the downlink throughput we can enable the grafana dashboard from srsran project directory  [https://docs.srsran.com/projects/project/en/latest/user_manuals/source/grafana_gui.html]
 
 
-#### 4. Example xApp
+#### 4. xApp 1 ( app_mode 1)
 
-The xApp in this demo is designed to send rc message to the e2 node. Two custom xapp are being used in this experiment. Xapp-1 sends rc message to allocate higher resources (prb) to the base station and xapp-2 sends rc message to allocate minimum resources to the base station. When both xapp is running concurrently it results in an unstable network at the base station resulting in a direct conflict
+The xApp in this demo is designed to send rc message to the e2 node. When initially two ue connected to two dufferent slices, the both app will alloc ate resources equally. When third ue joins in slice A, Xapp-1 (app_mode 1) sends rc message to allocate higher resources (prb) to the Slice A and xapp-2 sends rc message to allocate equal resources among the slices. When both xapp is running concurrently it results in an unstable network at the base station resulting in a direct conflict
 
-To start the xapp1, which will alocate prb to  maximum ratio, run the following command
+To start the xapp1, which will prioritize slice A, run the following command
 ```bash
-sudo docker compose exec python_xapp_runner ./xapp_timing_1.py --xapp_id "xApp3" --e2_node_id "gnbd_001_001_00019b_0"  --http_server_port 8090 --app_mode 1 --rmr_port 4562 --ue_ids=0,1,2```
-xApp #1 logic:
-	1. count total UE number in all slices
-		TotalUeCount = sum(len(SliceConfigurationList.SliceA/B/C.Users))
-	2. count UE number in prioritized slice A
-		UeCountSliceA = len(SliceConfigurationList.SliceA.Users)
-	3. calculate average PRB allocation ratio per slice
-		AveragePRBRatio = 1/len(SliceConfigurationList)
-	4. calculate PRB allocation for prioritized slice A:
-		PriorityPRBRatio = UeCountSliceA / TotalUeCount
-		NonpriorityPRBRatio = (1 - PriorityPRBRatio) / (TotalSliceCount - 1)
-	5. calculate PRBs allocation per each slice
-		PRBAllocationForSliceA = 0.5 * TotalPRBCount * (PriorityPRBRatio + AveragePRBRatio)
-		PRBAllocationForSliceB = 0.5 * TotalPRBCount * (NonpriorityPRBRatio + AveragePRBRatio)
-	6. allocate PRBs according to the calculations
+sudo docker compose exec python_xapp_runner ./xapp_timing_1.py --xapp_id "xApp3" --e2_node_id "gnbd_001_001_00019b_0"  --http_server_port 8090 --app_mode 1 --rmr_port 4560
+```
 
-#### 5. Start Another xapp
-To Start xapp2, which will allocate prb to minimum ratio, run the following command .
-If we start the xapp 2 , its decision will override on the xapp-1 s decision which will reflect a fluctuation in downlink bitrate.
+
+#### 5. xApp 2 (app_mode 2)
+
 
 
 ```bash
- sudo docker compose exec python_xapp_runner ./simple_xapp_13.py --http_server_port 8090 --rmr_port 4560 --e2_node_id gnbd_001_001_00019b_0 --ran_func_id 3 --ue_id 0 --xapp_id xApp1```
+sudo docker compose exec python_xapp_runner ./xapp_timing_1.py --xapp_id "xApp4" --e2_node_id "gnbd_001_001_00019b_0"  --http_server_port 8091 --app_mode 2 ```
 
 ```
 Enabling gNB console trace (with `t`) allows the monitoring of changes in the downlink (DL) user equipment (UE) data rate.
 
-#### 6. Conflict Detection
-In another Terminal run the following command to see if the central controller detcting the conflcit uplon starting the 2nd xapp
+#### 6. Conflict Detection and Mitigation
+In another Terminal run the following command before connecting the third ue. When there is only two ue connected the cmf will execute both apps message. when the third ue connects the cmf will detect the conflcit by reading the decision of each xapps meaaseg. Uplon detection it will create a block file for app_mode 2 which will discard the meassage of xapp 2 and only pass the xapp 1 as priority is assigned to xApp 1.
         
 ```bash
- sudo python3 ./central_controller_cd.py
+ sudo docker compose exec python_xapp_runner ./xApp_CMF.py   --rmr_port 4563 --http_server_port 8093
 ```
 The terminal will print this after detecting conflict
 ```bash
@@ -117,13 +104,6 @@ Buffering message from  xApp2 for later execution.
 Executing buffered message from xApp xApp2 after delay.
 Initializing Conflict Mitigation Module
 
-```
-#### 7. Conflict Mitigation
-After detecting the conflict we need to initialize the mitigation by clicking the following command
-
-```bash
-cd oran-sc-ric/
- sudo docker compose exec python_xapp_runner ./resolution.py
 ```
 
 
