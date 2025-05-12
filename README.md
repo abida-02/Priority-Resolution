@@ -105,5 +105,6 @@ Executing buffered message from xApp xApp2 after delay.
 Initializing Conflict Mitigation Module
 
 ```
-
+#### Result Evaluation 
+In the runs with CM enabled, when the third UE connects to the network, the DL throughput changes for each UE as the network adapts to the new PRB allocations, but then remains stable. In contrast to the runs without CM, no significant metric fluctuations are observed. This is due to the CM measure causing control decisions from xApp #1 to take precedence over decisions from xApp #2, allowing for the network to reach a stable state
 
