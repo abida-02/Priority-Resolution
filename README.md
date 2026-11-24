@@ -1,6 +1,7 @@
 # Priority-Resolution
 This method involves only executing one xApp and discarding other existing xApps’s decisions to emphasize the high priority user device.In the test scenario, the CR approach is tailored to the specific roles of the xApps deployed in the system. xApp #1 is responsible for optimizing network performance for high-priority traffic in Slice A, making it the preferred xApp in cases of control conflicts. When both xApp #1 and xApp #2 issue E2 control messages that are active simultaneously and target the same slice, the CD Agent identifies the direct conflict. The CD Agent forwards this information to the CR Agent, which consistently resolves the conflict by rejecting the control decision from xApp #2. As a result, only the control action from xApp #1 is applied to the network, ensuring that the high priority traffic optimization is not affected by competing xApp decisions
 
+[Paper Link] (https://ieeexplore.ieee.org/abstract/document/11152996)
 
 ## Quick start
 #### 1. SC RIC platform
